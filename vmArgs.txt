@@ -1,0 +1,5 @@
+-Dcatalina.home=当前工程目录
+-Dcatalina.base=当前工程目录
+-Duser.language=en
+-Djava.util.logging.manager=org.apache.juli.ClassLoaderLogManager
+-Djava.util.logging.config.file=当前工程目录/conf/logging.properties
