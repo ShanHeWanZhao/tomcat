@@ -169,8 +169,9 @@ public class NioBlockingSelector {
     /**
      * Performs a blocking read using the bytebuffer for data to be read
      * If the <code>selector</code> parameter is null, then it will perform a busy read that could
-     * take up a lot of CPU cycles.
-     *
+     * take up a lot of CPU cycles. <p/>
+     * 阻塞读（使用CountDownLatch实现，将当前线程阻塞，轮询可读的事件交给BlockPoller来做，当可读时，降下门闩，从SocketChannel中读取数据）。
+     * 同时设置阻塞的超时时间以此来检测是否超时了，但还不可读
      * @param buf ByteBuffer - the buffer containing the data, we will read as until we have read at least one byte or we timed out
      * @param socket SocketChannel - the socket to write data to
      * @param readTimeout long - the timeout for this read operation in milliseconds, -1 means no timeout
@@ -191,21 +192,25 @@ public class NioBlockingSelector {
         NioSocketWrapper att = (NioSocketWrapper) key.attachment();
         int read = 0;
         boolean timedout = false;
+        // keycount为1代表有数据可读，为0代表没有可读的数据（先假定有可读的数据）
         int keycount = 1; //assume we can read
         long time = System.currentTimeMillis(); //start the timeout timer
         try {
             while (!timedout) {
                 if (keycount > 0) { //only read if we were registered for a read
-                    read = socket.read(buf);
+                    read = socket.read(buf); // 非阻塞读，返回0代表没有数据可读
                     if (read != 0) {
                         break;
                     }
                 }
+                // 能走到下面，就代表暂时不可读
                 try {
                     if (att.getReadLatch()==null || att.getReadLatch().getCount()==0) {
-                        att.startReadLatch(1);
+                        att.startReadLatch(1); // 设置Read的CountDownLatch
                     }
+                    // 注册读事件
                     poller.add(att,SelectionKey.OP_READ, reference);
+                    // 阻塞指定的超时时间
                     if (readTimeout < 0) {
                         att.awaitReadLatch(Long.MAX_VALUE, TimeUnit.MILLISECONDS);
                     } else {
@@ -215,14 +220,15 @@ public class NioBlockingSelector {
                     // Ignore
                 }
                 if ( att.getReadLatch()!=null && att.getReadLatch().getCount()> 0) {
+                    // 代表门闩还未降下，说明还不可读，要么是被中断了，要么是超时了
                     //we got interrupted, but we haven't received notification from the poller.
                     keycount = 0;
-                }else {
+                }else { // 被BlockPoller降下了门闩，说明监听到可读了
                     //latch countdown has happened
                     keycount = 1;
                     att.resetReadLatch();
                 }
-                if (readTimeout >= 0 && (keycount == 0)) {
+                if (readTimeout >= 0 && (keycount == 0)) { // 不可读，判断是否超时
                     timedout = (System.currentTimeMillis() - time) >= readTimeout;
                 }
             }
@@ -331,6 +337,7 @@ public class NioBlockingSelector {
         public void run() {
             while (run) {
                 try {
+                    // 运行所有事件
                     events();
                     int keyCount = 0;
                     try {
@@ -368,12 +375,13 @@ public class NioBlockingSelector {
 
                     // Walk through the collection of ready keys and dispatch
                     // any active event.
-                    while (run && iterator != null && iterator.hasNext()) {
+                    while (run && iterator != null && iterator.hasNext()) { // 遍历所有存在的SelectionKey
                         SelectionKey sk = iterator.next();
                         NioSocketWrapper attachment = (NioSocketWrapper)sk.attachment();
                         try {
                             iterator.remove();
                             sk.interestOps(sk.interestOps() & (~sk.readyOps()));
+                            // 可读和可写都降下CountDownLatch，让被阻塞的地方可以继续运行了
                             if ( sk.isReadable() ) {
                                 countDown(attachment.getReadLatch());
                             }
@@ -440,12 +448,12 @@ public class NioBlockingSelector {
             public void run() {
                 SelectionKey sk = ch.keyFor(selector);
                 try {
-                    if (sk == null) {
+                    if (sk == null) { // 代表当前channel还未注册到当前selector上，开始注册并设置感兴趣的时间
                         sk = ch.register(selector, ops, key);
                         ref.key = sk;
-                    } else if (!sk.isValid()) {
+                    } else if (!sk.isValid()) { // SelectionKey无效，取消并且降下CountDownLatch
                         cancel(sk, key, ops);
-                    } else {
+                    } else { // key存在且有效，再增加监听指定的时间
                         sk.interestOps(sk.interestOps() | ops);
                     }
                 } catch (CancelledKeyException cx) {

@@ -95,7 +95,8 @@ public class StandardHost extends ContainerBase implements Host {
     private String xmlBase = null;
 
     /**
-     * host's default config path
+     * host's default config path <p/>
+     * 默认为：conf/Catalina/localhost目录
      */
     private volatile File hostConfigBase = null;
 
@@ -225,6 +226,7 @@ public class StandardHost extends ContainerBase implements Host {
 
         // If not absolute, make it absolute
         if (!file.isAbsolute()) {
+            // ${catalina.base}/webapps
             file = new File(getCatalinaBase(), file.getPath());
         }
 
@@ -809,7 +811,7 @@ public class StandardHost extends ContainerBase implements Host {
         // Set error report valve
         String errorValve = getErrorReportValveClass();
         if ((errorValve != null) && (!errorValve.equals(""))) {
-            try {
+            try { // 确保ErrorReportValve在Pipeline里的唯一性
                 boolean found = false;
                 Valve[] valves = getPipeline().getValves();
                 for (Valve valve : valves) {

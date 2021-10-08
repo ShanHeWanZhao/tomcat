@@ -141,6 +141,11 @@ public final class Bootstrap {
 
     private void initClassLoaders() {
         try {
+            // URLClassLoader
+            // "${catalina.base}/lib"
+            // "${catalina.base}/lib/*.jar"
+            // "${catalina.home}/lib"
+            // "${catalina.home}/lib/*.jar"
             commonLoader = createClassLoader("common", null);
             if (commonLoader == null) {
                 // no config file, default to this loader - we might be in a 'single' env.
@@ -431,7 +436,8 @@ public final class Bootstrap {
 
     /**
      * Main method and entry point when starting Tomcat via the provided
-     * scripts.
+     * scripts.<p/>
+     * 万物的开始
      *
      * @param args Command line arguments to be processed
      */

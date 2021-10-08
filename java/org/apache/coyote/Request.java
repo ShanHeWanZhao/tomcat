@@ -100,6 +100,9 @@ public final class Request {
     private final MessageBytes remoteHostMB = MessageBytes.newInstance();
     private final MessageBytes localAddrMB = MessageBytes.newInstance();
 
+    /**
+     * http请求的请求头抽象
+     */
     private final MimeHeaders headers = new MimeHeaders();
 
 
@@ -141,6 +144,9 @@ public final class Request {
      */
     private boolean expectation = false;
 
+    /**
+     * cookie的抽象
+     */
     private final ServerCookies serverCookies = new ServerCookies(INITIAL_COOKIE_SIZE);
     private final Parameters parameters = new Parameters();
 

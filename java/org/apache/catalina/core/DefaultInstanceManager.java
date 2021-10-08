@@ -102,6 +102,9 @@ public class DefaultInstanceManager implements InstanceManager {
     protected final ClassLoader classLoader;
     protected final ClassLoader containerClassLoader;
     protected final boolean privileged;
+    /**
+     * 默认false
+     */
     protected final boolean ignoreAnnotations;
     private final Set<String> restrictedClasses;
     private final ManagedConcurrentWeakHashMap<Class<?>, AnnotationCacheEntry[]> annotationCache =

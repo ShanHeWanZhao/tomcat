@@ -315,6 +315,7 @@ public class WebXml extends XmlEncodingBase implements DocumentProperties.Encodi
     // TODO: icon (multiple) is ignored
     // TODO: init-param/description (multiple with language) is ignored
     // TODO: security-role-ref/description (multiple with language) is ignored
+    // web.xml里配置的servlet缓存map，key为servlet name
     private final Map<String,ServletDef> servlets = new HashMap<>();
     public void addServlet(ServletDef servletDef) {
         servlets.put(servletDef.getServletName(), servletDef);

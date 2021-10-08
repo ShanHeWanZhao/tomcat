@@ -613,7 +613,8 @@ public class Response implements HttpServletResponse {
 
 
     /**
-     * Has the output of this response already been committed?
+     * Has the output of this response already been committed?<p/>
+     * 判断当前响应是否已提交（就是是否已发送到客户端）
      *
      * @return <code>true</code> if the response has been committed
      */
@@ -1054,7 +1055,7 @@ public class Response implements HttpServletResponse {
             return;
         }
 
-        if (isCommitted()) {
+        if (isCommitted()) { // 已提交的response就不应该在发送数据了
             return;
         }
 

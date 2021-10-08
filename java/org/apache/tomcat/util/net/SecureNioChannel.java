@@ -58,11 +58,17 @@ public class SecureNioChannel extends NioChannel  {
     protected ByteBuffer netInBuffer;
     protected ByteBuffer netOutBuffer;
 
+    /**
+     * 负责ssl的加密和解密
+     */
     protected SSLEngine sslEngine;
 
     protected boolean sniComplete = false;
 
     protected boolean handshakeComplete = false;
+    /**
+     * ssl握手阶段的状态
+     */
     protected HandshakeStatus handshakeStatus; //gets set by handshake
 
     protected boolean closed = false;

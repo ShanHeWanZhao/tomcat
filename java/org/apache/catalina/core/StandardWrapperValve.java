@@ -64,8 +64,12 @@ final class StandardWrapperValve extends ValveBase {
     // Some JMX statistics. This valve is associated with a StandardWrapper.
     // We expose the StandardWrapper as JMX ( j2eeType=Servlet ). The fields
     // are here for performance.
+    // jmx统计使用（毫秒单位）
+    // 当前servlet的总处理时间
     private volatile long processingTime;
+    // 当前servlet一次处理的最大耗时时间
     private volatile long maxTime;
+    // 当前servlet一次处理的最小耗时时间
     private volatile long minTime = Long.MAX_VALUE;
     private final AtomicInteger requestCount = new AtomicInteger(0);
     private final AtomicInteger errorCount = new AtomicInteger(0);
@@ -125,6 +129,7 @@ final class StandardWrapperValve extends ValveBase {
         // Allocate a servlet instance to process this request
         try {
             if (!unavailable) {
+                // 分配servlet并初始化
                 servlet = wrapper.allocate();
             }
         } catch (UnavailableException e) {
@@ -165,6 +170,7 @@ final class StandardWrapperValve extends ValveBase {
         request.setAttribute(Globals.DISPATCHER_REQUEST_PATH_ATTR,
                 requestPathMB);
         // Create the filter chain for this request
+        // 创建ApplicationFilterChain，并匹配合适的filter
         ApplicationFilterChain filterChain =
                 ApplicationFilterFactory.createFilterChain(request, wrapper, servlet);
 
@@ -193,6 +199,7 @@ final class StandardWrapperValve extends ValveBase {
                     if (request.isAsyncDispatching()) {
                         request.getAsyncContextInternal().doInternalDispatch();
                     } else {
+                        // 执行filter
                         filterChain.doFilter
                             (request.getRequest(), response.getResponse());
                     }
@@ -287,7 +294,7 @@ final class StandardWrapperValve extends ValveBase {
                 }
             }
             long t2=System.currentTimeMillis();
-
+            // 统计耗时
             long time=t2-t1;
             processingTime += time;
             if( time > maxTime) {

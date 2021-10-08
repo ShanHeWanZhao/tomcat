@@ -469,10 +469,13 @@ public class HostConfig implements LifecycleListener {
         File configBase = host.getConfigBaseFile();
         String[] filteredAppPaths = filterAppPaths(appBase.list());
         // Deploy XML descriptors from configBase
+        // xml方式部署（IDEA的war exploded就是这种方式）
         deployDescriptors(configBase, configBase.list());
         // Deploy WARs
+        // war包的形式部署
         deployWARs(appBase, filteredAppPaths);
         // Deploy expanded folders
+        // 直接以文件夹的形式部署
         deployDirectories(appBase, filteredAppPaths);
     }
 
@@ -567,7 +570,7 @@ public class HostConfig implements LifecycleListener {
 
         for (String file : files) {
             File contextXml = new File(configBase, file);
-
+            // xml文件
             if (file.toLowerCase(Locale.ENGLISH).endsWith(".xml")) {
                 ContextName cn = new ContextName(file, true);
 
@@ -650,7 +653,7 @@ public class HostConfig implements LifecycleListener {
             // Add the associated docBase to the redeployed list if it's a WAR
             if (context.getDocBase() != null) {
                 File docBase = new File(context.getDocBase());
-                if (!docBase.isAbsolute()) {
+                if (!docBase.isAbsolute()) { // 非绝对路径，就加上appBase路径
                     docBase = new File(host.getAppBaseFile(), context.getDocBase());
                 }
                 // If external docBase, register .xml as redeploy first
@@ -1165,7 +1168,7 @@ public class HostConfig implements LifecycleListener {
             } else {
                 context = (Context) Class.forName(contextClass).getConstructor().newInstance();
             }
-
+            // ContextConfig
             Class<?> clazz = Class.forName(host.getConfigClass());
             LifecycleListener listener = (LifecycleListener) clazz.getConstructor().newInstance();
             context.addLifecycleListener(listener);
@@ -1589,7 +1592,7 @@ public class HostConfig implements LifecycleListener {
             log.debug(sm.getString("hostConfig.start"));
         }
 
-        try {
+        try { // 注册MBean
             ObjectName hostON = host.getObjectName();
             oname = new ObjectName
                 (hostON.getDomain() + ":type=Deployer,host=" + host.getName());
@@ -1599,7 +1602,7 @@ public class HostConfig implements LifecycleListener {
             log.warn(sm.getString("hostConfig.jmx.register", oname), e);
         }
 
-        if (!host.getAppBaseFile().isDirectory()) {
+        if (!host.getAppBaseFile().isDirectory()) { // app文件目录不是文件夹，代表不需要部署
             log.error(sm.getString("hostConfig.appBase", host.getName(),
                     host.getAppBaseFile().getPath()));
             host.setDeployOnStartup(false);

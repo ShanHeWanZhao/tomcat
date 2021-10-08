@@ -89,8 +89,13 @@ import org.apache.tomcat.util.res.StringManager;
  */
 public class ApplicationContext implements ServletContext {
 
+    /**
+     * 默认false
+     */
     protected static final boolean STRICT_SERVLET_COMPLIANCE;
-
+    /**
+     * 默认false
+     */
     protected static final boolean GET_RESOURCE_REQUIRE_SLASH;
 
 

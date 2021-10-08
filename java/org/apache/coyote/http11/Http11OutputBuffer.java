@@ -119,6 +119,7 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
         responseFinished = false;
 
+        // 直接向socket发送数据的输出缓冲
         outputStreamOutputBuffer = new SocketOutputBuffer();
 
         if (sendReasonPhrase) {
@@ -216,16 +217,16 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
     @Override
     public int doWrite(ByteBuffer chunk) throws IOException {
 
-        if (!response.isCommitted()) {
+        if (!response.isCommitted()) { // 还未提交，Http11OutputBuffer专用来发送响应头
             // Send the connector a request for commit. The connector should
             // then validate the headers, send them (using sendHeaders) and
             // set the filters accordingly.
             response.action(ActionCode.COMMIT, null);
         }
 
-        if (lastActiveFilter == -1) {
+        if (lastActiveFilter == -1) { // 最后由SocketOutputBuffer来将数据真正写入
             return outputStreamOutputBuffer.doWrite(chunk);
-        } else {
+        } else { // 依次通过过滤器，处理chunk
             return activeFilters[lastActiveFilter].doWrite(chunk);
         }
     }
@@ -362,31 +363,32 @@ public class Http11OutputBuffer implements HttpOutputBuffer {
 
 
     /**
-     * Send the response status line.
+     * Send the response status line. <p/>
+     * 向响应的headBuffer里先添加协议和状态
      */
     @SuppressWarnings("deprecation")
     public void sendStatus() {
         // Write protocol name
-        write(Constants.HTTP_11_BYTES);
-        headerBuffer.put(Constants.SP);
+        write(Constants.HTTP_11_BYTES); // HTTP/1.1
+        headerBuffer.put(Constants.SP); // 空格
 
         // Write status code
         int status = response.getStatus();
         switch (status) {
         case 200:
-            write(Constants._200_BYTES);
+            write(Constants._200_BYTES); // 200
             break;
         case 400:
-            write(Constants._400_BYTES);
+            write(Constants._400_BYTES); // 400
             break;
         case 404:
-            write(Constants._404_BYTES);
+            write(Constants._404_BYTES); // 404
             break;
         default:
             write(status);
         }
 
-        headerBuffer.put(Constants.SP);
+        headerBuffer.put(Constants.SP); // 空格
 
         if (sendReasonPhrase) {
             // Write message

@@ -296,20 +296,20 @@ public class ContextConfig implements LifecycleListener {
         }
 
         // Process the event that has occurred
-        if (event.getType().equals(Lifecycle.CONFIGURE_START_EVENT)) {
+        if (event.getType().equals(Lifecycle.CONFIGURE_START_EVENT)) { // 3
             configureStart();
-        } else if (event.getType().equals(Lifecycle.BEFORE_START_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.BEFORE_START_EVENT)) { // 2
             beforeStart();
-        } else if (event.getType().equals(Lifecycle.AFTER_START_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.AFTER_START_EVENT)) { // 4
             // Restore docBase for management tools
             if (originalDocBase != null) {
                 context.setDocBase(originalDocBase);
             }
-        } else if (event.getType().equals(Lifecycle.CONFIGURE_STOP_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.CONFIGURE_STOP_EVENT)) { // 5
             configureStop();
-        } else if (event.getType().equals(Lifecycle.AFTER_INIT_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.AFTER_INIT_EVENT)) { // 1
             init();
-        } else if (event.getType().equals(Lifecycle.AFTER_DESTROY_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.AFTER_DESTROY_EVENT)) {// 6
             destroy();
         }
 
@@ -1055,12 +1055,14 @@ public class ContextConfig implements LifecycleListener {
          *   those in JARs excluded from an absolute ordering) need to be
          *   scanned to check if they match.
          */
+        // web.xml的解析器
         WebXmlParser webXmlParser = new WebXmlParser(context.getXmlNamespaceAware(),
                 context.getXmlValidation(), context.getXmlBlockExternal());
 
         Set<WebXml> defaults = new HashSet<>();
         defaults.add(getDefaultWebXmlFragment(webXmlParser));
 
+        // 应用程序的web.xml解析实体类
         WebXml webXml = createWebXml();
 
         // Parse context level web.xml
@@ -1091,6 +1093,7 @@ public class ContextConfig implements LifecycleListener {
 
         if  (!webXml.isMetadataComplete() || typeInitializerMap.size() > 0) {
             // Steps 4 & 5.
+            // 使用字节码方式解析class文件并处理相关注解（@WebServlet等）
             processClasses(webXml, orderedFragments);
         }
 
@@ -1113,6 +1116,7 @@ public class ContextConfig implements LifecycleListener {
 
             // Step 9. Apply merged web.xml to Context
             if (ok) {
+                // 将web.xml里解析的所有信息放入StandardContext
                 configureContext(webXml);
             }
         } else {
@@ -1171,7 +1175,7 @@ public class ContextConfig implements LifecycleListener {
             for (WebResource webResource : webResources) {
                 // Skip the META-INF directory from any JARs that have been
                 // expanded in to WEB-INF/classes (sometimes IDEs do this).
-                if ("META-INF".equals(webResource.getName())) {
+                if ("META-INF".equals(webResource.getName())) { // 跳过 META-INF文件夹
                     continue;
                 }
                 processAnnotationsWebResource(webResource, webXml,
@@ -1280,6 +1284,7 @@ public class ContextConfig implements LifecycleListener {
             context.getNamingResources().addService(service);
         }
         for (ServletDef servlet : webxml.getServlets().values()) {
+            // 默认为StandardWrapper
             Wrapper wrapper = context.createWrapper();
             // Description is ignored
             // Display name is ignored
@@ -1413,6 +1418,11 @@ public class ContextConfig implements LifecycleListener {
     }
 
 
+    /**
+     * 解析默认的全局web.xml文件，即conf/web.xml文件
+     * @param webXmlParser
+     * @return
+     */
     private WebXml getDefaultWebXmlFragment(WebXmlParser webXmlParser) {
 
         // Host should never be null
@@ -1420,6 +1430,7 @@ public class ContextConfig implements LifecycleListener {
 
         DefaultWebXmlCacheEntry entry = hostWebXmlCache.get(host);
 
+        // 默认的web.xml，即conf/web.xml文件
         InputSource globalWebXml = getGlobalWebXmlSource();
         InputSource hostWebXml = getHostWebXmlSource();
 
@@ -1578,7 +1589,9 @@ public class ContextConfig implements LifecycleListener {
     }
 
     /**
-     * Scan JARs for ServletContainerInitializer implementations.
+     * Scan JARs for ServletContainerInitializer implementations. <p/>
+     * 加载指定路径下文件里的ServletContainerInitializer，并处理这个class上的HandlesTypes注解，
+     * 最终放入typeInitializerMap缓存
      */
     protected void processServletContainerInitializers() {
 
@@ -1722,7 +1735,8 @@ public class ContextConfig implements LifecycleListener {
 
     /**
      * Identify the application web.xml to be used and obtain an input source
-     * for it.
+     * for it. <p/>
+     * 获取应用程序的web.xml，即自定义的WEB-INF/web.xml文件
      * @return an input source to the context web.xml
      */
     protected InputSource getContextWebXmlSource() {
@@ -1748,6 +1762,7 @@ public class ContextConfig implements LifecycleListener {
                         log.error(sm.getString("contextConfig.applicationUrl"));
                     }
                 } else {
+                    // WEB-INF/web.xml
                     stream = servletContext.getResourceAsStream
                         (Constants.ApplicationWebXml);
                     try {
@@ -2022,6 +2037,7 @@ public class ContextConfig implements LifecycleListener {
         AnnotationEntry[] annotationsEntries = clazz.getAnnotationEntries();
         if (annotationsEntries != null) {
             String className = clazz.getClassName();
+            // @WebServlet,@WebFilter,@WebListener注解扫描和支持
             for (AnnotationEntry ae : annotationsEntries) {
                 String type = ae.getAnnotationType();
                 if ("Ljavax/servlet/annotation/WebServlet;".equals(type)) {

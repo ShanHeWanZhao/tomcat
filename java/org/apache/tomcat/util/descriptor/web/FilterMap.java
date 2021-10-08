@@ -94,7 +94,8 @@ public class FilterMap extends XmlEncodingBase implements Serializable {
 
 
     /**
-     * The flag that indicates this mapping will match all url-patterns
+     * The flag that indicates this mapping will match all url-patterns <p/>
+     * 匹配所有路径
      */
     private boolean matchAllUrlPatterns = false;
 

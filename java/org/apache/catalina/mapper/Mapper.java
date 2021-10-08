@@ -736,7 +736,7 @@ public final class Mapper {
     private final void internalMap(CharChunk host, CharChunk uri,
             String version, MappingData mappingData) throws IOException {
 
-        if (mappingData.host != null) {
+        if (mappingData.host != null) { // 才开始处理，肯定为空
             // The legacy code (dating down at least to Tomcat 4.1) just
             // skipped all mapping work in this case. That behaviour has a risk
             // of returning an inconsistent result.
@@ -761,13 +761,14 @@ public final class Mapper {
                     host.setOffset(offset);
                 }
             }
-            if (mappedHost == null) {
+            if (mappedHost == null) { // 到这还没匹配到host，就是用默认的
                 mappedHost = defaultHost;
                 if (mappedHost == null) {
                     return;
                 }
             }
         }
+        // 找到了匹配的StandardHost并保存
         mappingData.host = mappedHost.object;
 
         if (uri.isNull()) {
@@ -781,7 +782,7 @@ public final class Mapper {
         ContextList contextList = mappedHost.contextList;
         MappedContext[] contexts = contextList.contexts;
         int pos = find(contexts, uri);
-        if (pos == -1) {
+        if (pos == -1) { // 相似的都没匹配到，直接返回
             return;
         }
 
@@ -1384,7 +1385,8 @@ public final class Mapper {
     /**
      * Find a map element given its name in a sorted array of map elements. This
      * will return the element that you were searching for. Otherwise it will
-     * return <code>null</code>.
+     * return <code>null</code>. <p/>
+     * 根据name，在指定的数组中查找相同name的元素
      * @see #findIgnoreCase(MapElement[], CharChunk)
      */
     private static final <T, E extends MapElement<T>> E exactFindIgnoreCase(

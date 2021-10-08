@@ -828,6 +828,7 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
 
                 SocketState state = SocketState.CLOSED;
                 do {
+                    // 处理service
                     state = processor.process(wrapper, status);
 
                     if (state == SocketState.UPGRADING) {

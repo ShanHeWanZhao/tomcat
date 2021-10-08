@@ -292,33 +292,39 @@ public class Catalina {
         digester.setUseContextClassLoader(true);
 
         // Configure the actions we will be using
+        // 默认创建StandardServer对象（如果className属性不为空，就创建该属性指定的Server对象）
         digester.addObjectCreate("Server",
                                  "org.apache.catalina.core.StandardServer",
                                  "className");
+        // 设置StandardServer的属性（根据xml节点配置的属性来）
         digester.addSetProperties("Server");
+        // 向Catalina设置server属性
         digester.addSetNext("Server",
                             "setServer",
                             "org.apache.catalina.Server");
-
+        // 创建NamingResourcesImpl对象
         digester.addObjectCreate("Server/GlobalNamingResources",
                                  "org.apache.catalina.deploy.NamingResourcesImpl");
         digester.addSetProperties("Server/GlobalNamingResources");
+        // 将当前创建的NamingResourcesImpl对象设置到StandardServer里
         digester.addSetNext("Server/GlobalNamingResources",
                             "setGlobalNamingResources",
                             "org.apache.catalina.deploy.NamingResourcesImpl");
-
+        // 创建Listener，class为指定的属性
         digester.addObjectCreate("Server/Listener",
                                  null, // MUST be specified in the element
                                  "className");
         digester.addSetProperties("Server/Listener");
+        // 将创建的Listener作为入参调用StandardServer里的addLifecycleListener方法
         digester.addSetNext("Server/Listener",
                             "addLifecycleListener",
                             "org.apache.catalina.LifecycleListener");
-
+        // 创建StandardService对象
         digester.addObjectCreate("Server/Service",
                                  "org.apache.catalina.core.StandardService",
                                  "className");
         digester.addSetProperties("Server/Service");
+        // 将创建的StandardService对象作为入参调用StandardServer里的addService方法
         digester.addSetNext("Server/Service",
                             "addService",
                             "org.apache.catalina.Service");
@@ -331,7 +337,7 @@ public class Catalina {
                             "addLifecycleListener",
                             "org.apache.catalina.LifecycleListener");
 
-        //Executor
+        // Executor(默认没配置)
         digester.addObjectCreate("Server/Service/Executor",
                          "org.apache.catalina.core.StandardThreadExecutor",
                          "className");
@@ -543,6 +549,7 @@ public class Catalina {
         initNaming();
 
         // Create and execute our Digester
+        // server.xml解析器
         Digester digester = createStartDigester();
 
         InputSource inputSource = null;
@@ -607,6 +614,7 @@ public class Catalina {
 
             try {
                 inputSource.setByteStream(inputStream);
+                // 将当前Catalina对象压入栈顶，让Digester对象设置属性
                 digester.push(this);
                 digester.parse(inputSource);
             } catch (SAXParseException spe) {

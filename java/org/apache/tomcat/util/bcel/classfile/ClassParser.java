@@ -78,6 +78,7 @@ public final class ClassParser {
     public JavaClass parse() throws IOException, ClassFormatException {
         /****************** Read headers ********************************/
         // Check magic tag of class file
+        // 魔数检查，CAFEBABE，class文件
         readID();
         // Get compiler version
         readVersion();

@@ -560,7 +560,9 @@ public class StandardContext extends ContainerBase
 
 
     /**
-     * The watched resources for this application.
+     * The watched resources for this application.<p/>
+     * 默认：1、${catalina.base}/conf/web.xml
+     *  2、WEB-INF/web.xml
      */
     private String watchedResources[] = new String[0];
 

@@ -47,7 +47,8 @@ public final class Constants {
 
 
     /**
-     * SP.
+     * SP. <p/>
+     * 空格字符
      */
     public static final byte SP = (byte) ' ';
 

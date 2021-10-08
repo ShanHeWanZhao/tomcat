@@ -128,6 +128,7 @@ public abstract class LifecycleBase implements Lifecycle {
     @Override
     public final synchronized void init() throws LifecycleException {
         if (!state.equals(LifecycleState.NEW)) {
+            // 抛异常（代表init方法只能调用一次）
             invalidTransition(Lifecycle.BEFORE_INIT_EVENT);
         }
 
@@ -157,7 +158,7 @@ public abstract class LifecycleBase implements Lifecycle {
     public final synchronized void start() throws LifecycleException {
 
         if (LifecycleState.STARTING_PREP.equals(state) || LifecycleState.STARTING.equals(state) ||
-                LifecycleState.STARTED.equals(state)) {
+                LifecycleState.STARTED.equals(state)) { // 重启启动
 
             if (log.isDebugEnabled()) {
                 Exception e = new LifecycleException();

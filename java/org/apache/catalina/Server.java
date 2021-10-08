@@ -183,7 +183,8 @@ public interface Server extends Lifecycle {
 
 
     /**
-     * Wait until a proper shutdown command is received, then return.
+     * Wait until a proper shutdown command is received, then return. <P/>
+     * 开启监听shutdown命令的ServerSocket，并在匹配了正确的shutdown命令（默认SHUTDOWN）后退出，否则死循环监听
      */
     public void await();
 

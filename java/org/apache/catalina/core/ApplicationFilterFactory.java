@@ -102,6 +102,7 @@ public final class ApplicationFilterFactory {
         String servletName = wrapper.getName();
 
         // Add the relevant path-mapped filters to this filter chain
+        // 按uri匹配filter
         for (FilterMap filterMap : filterMaps) {
             if (!matchDispatcher(filterMap, dispatcher)) {
                 continue;
@@ -119,6 +120,7 @@ public final class ApplicationFilterFactory {
         }
 
         // Add filters that match on servlet name second
+        // 按指定的servlet匹配filter
         for (FilterMap filterMap : filterMaps) {
             if (!matchDispatcher(filterMap, dispatcher)) {
                 continue;

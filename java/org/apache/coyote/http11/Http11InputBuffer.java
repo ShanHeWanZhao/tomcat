@@ -606,7 +606,8 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
 
     /**
-     * Parse the HTTP headers.
+     * Parse the HTTP headers.<p/>
+     * 解析请求头并校验大小
      */
     boolean parseHeaders() throws IOException {
         if (!parsingHeader) {
@@ -890,7 +891,7 @@ public class Http11InputBuffer implements InputBuffer, ApplicationBufferHandler 
 
             int pos = byteBuffer.position();
             chr = byteBuffer.get();
-            if (chr == Constants.COLON) {
+            if (chr == Constants.COLON) { // 请求头的冒号(:)分隔符
                 headerParsePos = HeaderParsePosition.HEADER_VALUE_START;
                 headerData.headerValue = headers.addValue(byteBuffer.array(), headerData.start,
                         pos - headerData.start);

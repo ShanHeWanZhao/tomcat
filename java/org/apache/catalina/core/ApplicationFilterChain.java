@@ -76,7 +76,8 @@ public final class ApplicationFilterChain implements FilterChain {
 
     /**
      * The int which is used to maintain the current position
-     * in the filter chain.
+     * in the filter chain. <p/>
+     * 当前执行到的filter位置指针
      */
     private int pos = 0;
 
@@ -172,7 +173,9 @@ public final class ApplicationFilterChain implements FilterChain {
         throws IOException, ServletException {
 
         // Call the next filter if there is one
+        // 依次调用下一个filter，直到filter链调用完毕
         if (pos < n) {
+            // array[i++]，先取出array[i]，在 i = i + 1
             ApplicationFilterConfig filterConfig = filters[pos++];
             try {
                 Filter filter = filterConfig.getFilter();
@@ -203,6 +206,7 @@ public final class ApplicationFilterChain implements FilterChain {
         }
 
         // We fell off the end of the chain -- call the servlet instance
+        // filter链调用完毕，最后执行servlet的service方法
         try {
             if (ApplicationDispatcher.WRAP_SAME_OBJECT) {
                 lastServicedRequest.set(request);
@@ -277,13 +281,14 @@ public final class ApplicationFilterChain implements FilterChain {
     void addFilter(ApplicationFilterConfig filterConfig) {
 
         // Prevent the same filter being added multiple times
+        // 重复的filter就不添加了
         for(ApplicationFilterConfig filter:filters) {
             if(filter==filterConfig) {
                 return;
             }
         }
 
-        if (n == filters.length) {
+        if (n == filters.length) { // 扩容，每次扩容10个格子
             ApplicationFilterConfig[] newFilters =
                 new ApplicationFilterConfig[n + INCREMENT];
             System.arraycopy(filters, 0, newFilters, 0, n);

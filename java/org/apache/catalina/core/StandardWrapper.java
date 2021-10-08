@@ -131,7 +131,8 @@ public class StandardWrapper extends ContainerBase
 
 
     /**
-     * Flag that indicates if this instance has been initialized
+     * Flag that indicates if this instance has been initialized <p/>
+     * 当前servlet是否已经初始化（就是调用了init接口）
      */
     protected volatile boolean instanceInitialized = false;
 
@@ -151,7 +152,8 @@ public class StandardWrapper extends ContainerBase
 
     /**
      * The initialization parameters for this servlet, keyed by
-     * parameter name.
+     * parameter name. <p/>
+     * 当前servlet的InitParam参数缓存
      */
     protected HashMap<String, String> parameters = new HashMap<>();
 
@@ -181,7 +183,8 @@ public class StandardWrapper extends ContainerBase
 
 
     /**
-     * Does this servlet implement the SingleThreadModel interface?
+     * Does this servlet implement the SingleThreadModel interface? <p/>
+     * 正常的servlet都应该是false
      */
     protected volatile boolean singleThreadModel = false;
 
@@ -193,7 +196,8 @@ public class StandardWrapper extends ContainerBase
 
 
     /**
-     * Maximum number of STM instances.
+     * Maximum number of STM instances. <p/>
+     * 默认最多20个单线程servlet
      */
     protected int maxInstances = 20;
 
@@ -236,6 +240,9 @@ public class StandardWrapper extends ContainerBase
     // To support jmx attributes
     protected StandardWrapperValve swValve;
     protected long loadTime=0;
+    /**
+     * 当前servlet实例化耗时
+     */
     protected int classLoadTime=0;
 
     /**
@@ -753,6 +760,7 @@ public class StandardWrapper extends ContainerBase
         boolean newInstance = false;
 
         // If not SingleThreadedModel, return the same instance every time
+        // 非SingleThreadedModel的，每次都返回相同的servlet（多线程共用这个对象）
         if (!singleThreadModel) {
             // Load and initialize our instance if necessary
             if (instance == null || !instanceInitialized) {
@@ -1093,7 +1101,7 @@ public class StandardWrapper extends ContainerBase
                 }
                 singleThreadModel = true;
             }
-
+            // init接口
             initServlet(servlet);
 
             fireContainerEvent("load", this);

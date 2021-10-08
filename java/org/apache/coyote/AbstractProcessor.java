@@ -381,7 +381,7 @@ public abstract class AbstractProcessor extends AbstractProcessorLight implement
             if (!response.isCommitted()) {
                 try {
                     // Validate and write response headers
-                    prepareResponse();
+                    prepareResponse(); // 发送响应头
                 } catch (IOException e) {
                     handleIOException(e);
                 }

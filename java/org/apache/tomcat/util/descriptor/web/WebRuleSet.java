@@ -55,7 +55,8 @@ public class WebRuleSet extends RuleSetBase {
 
     /**
      * The full pattern matching prefix, including the webapp or web-fragment
-     * component, to use for matching elements
+     * component, to use for matching elements <p/>
+     * 可以web-app（默认）和web-fragment
      */
     protected final String fullPrefix;
 

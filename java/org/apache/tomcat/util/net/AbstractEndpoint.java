@@ -178,7 +178,8 @@ public abstract class AbstractEndpoint<S> {
 
 
     /**
-     * counter for nr of connections handled by an endpoint
+     * counter for nr of connections handled by an endpoint <p/>
+     * 客户端连接数限制器
      */
     private volatile LimitLatch connectionLimitLatch = null;
 
@@ -506,7 +507,8 @@ public abstract class AbstractEndpoint<S> {
     }
 
     /**
-     * External Executor based thread pool.
+     * External Executor based thread pool. <p/>
+     * tomcat执行任务的线程池（例：http-nio-8080-exec-1）
      */
     private Executor executor = null;
     public void setExecutor(Executor executor) {
@@ -517,7 +519,8 @@ public abstract class AbstractEndpoint<S> {
 
 
     /**
-     * Server socket port.
+     * Server socket port. <p/>
+     * tomcat服务器端口
      */
     private int port;
     public int getPort() { return port; }
@@ -538,7 +541,8 @@ public abstract class AbstractEndpoint<S> {
 
 
     /**
-     * Address for the server socket.
+     * Address for the server socket. <p/>
+     * tomcat服务器地址
      */
     private InetAddress address;
     public InetAddress getAddress() { return address; }
@@ -658,6 +662,9 @@ public abstract class AbstractEndpoint<S> {
      */
     public abstract boolean isAlpnSupported();
 
+    /**
+     * tomcat线程池核心线程数
+     */
     private int minSpareThreads = 10;
     public void setMinSpareThreads(int minSpareThreads) {
         this.minSpareThreads = minSpareThreads;
@@ -747,7 +754,8 @@ public abstract class AbstractEndpoint<S> {
     }
 
     /**
-     * Name of the thread pool, which will be used for naming child threads.
+     * Name of the thread pool, which will be used for naming child threads. <p/>
+     * 执行任务的线程池前缀（NIO1为：http-nio-端口号）
      */
     private String name = "TP";
     public void setName(String name) { this.name = name; }
@@ -1098,12 +1106,14 @@ public abstract class AbstractEndpoint<S> {
             if (socketWrapper == null) {
                 return false;
             }
+            // 从缓存中去SocketProcessor，没有就新建。并且设置Socket和当前事件
             SocketProcessorBase<S> sc = processorCache.pop();
             if (sc == null) {
                 sc = createSocketProcessor(socketWrapper, event);
             } else {
                 sc.reset(socketWrapper, event);
             }
+            // 如果是dispatch，就交给tomcat线程池真正的处理读写和业务逻辑
             Executor executor = getExecutor();
             if (dispatch && executor != null) {
                 executor.execute(sc);
@@ -1310,7 +1320,7 @@ public abstract class AbstractEndpoint<S> {
     }
 
     protected void countUpOrAwaitConnection() throws InterruptedException {
-        if (maxConnections==-1) {
+        if (maxConnections==-1) { // 最大连接数无限制
             return;
         }
         LimitLatch latch = connectionLimitLatch;

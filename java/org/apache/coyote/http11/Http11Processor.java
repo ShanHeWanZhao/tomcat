@@ -101,7 +101,8 @@ public class Http11Processor extends AbstractProcessor {
 
 
     /**
-     * Keep-alive.
+     * Keep-alive.<p/>
+     * 长连接
      */
     protected volatile boolean keepAlive = true;
 
@@ -487,6 +488,7 @@ public class Http11Processor extends AbstractProcessor {
     }
 
 
+    // request的解析，servlet的业务调用，response的返回
     @Override
     public SocketState service(SocketWrapperBase<?> socketWrapper)
         throws IOException {
@@ -508,7 +510,7 @@ public class Http11Processor extends AbstractProcessor {
 
             // Parsing the request header
             try {
-                if (!inputBuffer.parseRequestLine(keptAlive)) {
+                if (!inputBuffer.parseRequestLine(keptAlive)) { // 解析请求头
                     if (inputBuffer.getParsingRequestLinePhase() == -1) {
                         return SocketState.UPGRADING;
                     } else if (handleIncompleteRequestLineRead()) {
@@ -519,18 +521,19 @@ public class Http11Processor extends AbstractProcessor {
                 // Process the Protocol component of the request line
                 // Need to know if this is an HTTP 0.9 request before trying to
                 // parse headers.
-                prepareRequestProtocol();
+                prepareRequestProtocol(); // 设置请求协议版本
 
-                if (endpoint.isPaused()) {
+                if (endpoint.isPaused()) { // endpoint被暂停了，服务不可用了
                     // 503 - Service unavailable
                     response.setStatus(503);
                     setErrorState(ErrorState.CLOSE_CLEAN, null);
                 } else {
                     keptAlive = true;
                     // Set this every time in case limit has been changed via JMX
+                    // 默认设置最大请求头为100个
                     request.getMimeHeaders().setLimit(endpoint.getMaxHeaderCount());
                     // Don't parse headers for HTTP/0.9
-                    if (!http09 && !inputBuffer.parseHeaders()) {
+                    if (!http09 && !inputBuffer.parseHeaders()) { // 解析http的header
                         // We've read part of the request, don't recycle it
                         // instead associate it with the socket
                         openSocket = true;
@@ -569,6 +572,7 @@ public class Http11Processor extends AbstractProcessor {
             }
 
             // Has an upgrade been requested?
+            // 升级协议，websocket
             if (isConnectionToken(request.getMimeHeaders(), "upgrade")) {
                 // Check the protocol
                 String requestedProtocol = request.getHeader("Upgrade");
@@ -596,6 +600,7 @@ public class Http11Processor extends AbstractProcessor {
 
             if (getErrorState().isIoAllowed()) {
                 // Setting up filters, and parse some request headers
+                // 准备阶段
                 rp.setStage(org.apache.coyote.Constants.STAGE_PREPARE);
                 try {
                     prepareRequest();
@@ -620,7 +625,9 @@ public class Http11Processor extends AbstractProcessor {
             // Process the request in the adapter
             if (getErrorState().isIoAllowed()) {
                 try {
+                    // 处理业务阶段
                     rp.setStage(org.apache.coyote.Constants.STAGE_SERVICE);
+                    // 业务处理方法入口
                     getAdapter().service(request, response);
                     // Handle when the response was committed before a serious
                     // error occurred.  Throwing a ServletException should both
@@ -657,7 +664,7 @@ public class Http11Processor extends AbstractProcessor {
 
             // Finish the handling of the request
             rp.setStage(org.apache.coyote.Constants.STAGE_ENDINPUT);
-            if (!isAsync()) {
+            if (!isAsync()) { // 非异步，用socket返回response给客户端
                 // If this is an async request then the request ends when it has
                 // been completed. The AsyncContext is responsible for calling
                 // endRequest() in that case.
@@ -672,7 +679,7 @@ public class Http11Processor extends AbstractProcessor {
             }
 
             if (!isAsync() || getErrorState().isError()) {
-                request.updateCounters();
+                request.updateCounters(); // 统计这次请求的信息，jmx使用
                 if (getErrorState().isIoAllowed()) {
                     inputBuffer.nextRequest();
                     outputBuffer.nextRequest();
@@ -1083,7 +1090,7 @@ public class Http11Processor extends AbstractProcessor {
 
         OutputFilter[] outputFilters = outputBuffer.getFilters();
 
-        if (http09 == true) {
+        if (http09 == true) { // http0.9协议就激活 IdentityOutputFilter
             // HTTP/0.9
             outputBuffer.addActiveFilter(outputFilters[Constants.IDENTITY_FILTER]);
             outputBuffer.commit();
@@ -1092,7 +1099,7 @@ public class Http11Processor extends AbstractProcessor {
 
         int statusCode = response.getStatus();
         if (statusCode < 200 || statusCode == 204 || statusCode == 205 ||
-                statusCode == 304) {
+                statusCode == 304) { // 响应状态码就激活 VoidOutputFilter
             // No entity body
             outputBuffer.addActiveFilter
                 (outputFilters[Constants.VOID_FILTER]);
@@ -1108,7 +1115,7 @@ public class Http11Processor extends AbstractProcessor {
         }
 
         MessageBytes methodMB = request.method();
-        if (methodMB.equals("HEAD")) {
+        if (methodMB.equals("HEAD")) { // HEAD请求方法 激活 VoidOutputFilter
             // No entity body
             outputBuffer.addActiveFilter
                 (outputFilters[Constants.VOID_FILTER]);
@@ -1142,7 +1149,7 @@ public class Http11Processor extends AbstractProcessor {
 
         long contentLength = response.getContentLengthLong();
         boolean connectionClosePresent = isConnectionToken(headers, Constants.CLOSE);
-        if (contentLength != -1) {
+        if (contentLength != -1) { // 存在Content-Length，激活 IdentityOutputFilter （基本就用这个）
             headers.setValue("Content-Length").setLong(contentLength);
             outputBuffer.addActiveFilter(outputFilters[Constants.IDENTITY_FILTER]);
             contentDelimitation = true;
@@ -1245,13 +1252,13 @@ public class Http11Processor extends AbstractProcessor {
 
         // Build the response header
         try {
-            outputBuffer.sendStatus();
+            outputBuffer.sendStatus(); // 先添加请求协议和状态，例：HTTP/1.1 200 换行符
 
             int size = headers.size();
-            for (int i = 0; i < size; i++) {
+            for (int i = 0; i < size; i++) { // 再依次添加响应头，例: Name: value换行符
                 outputBuffer.sendHeader(headers.getName(i), headers.getValue(i));
             }
-            outputBuffer.endHeaders();
+            outputBuffer.endHeaders(); // 在添加换行
         } catch (Throwable t) {
             ExceptionUtils.handleThrowable(t);
             // If something goes wrong, reset the header buffer so the error
@@ -1260,7 +1267,7 @@ public class Http11Processor extends AbstractProcessor {
             throw t;
         }
 
-        outputBuffer.commit();
+        outputBuffer.commit(); // 发送header
     }
 
     private static boolean isConnectionToken(MimeHeaders headers, String token) throws IOException {

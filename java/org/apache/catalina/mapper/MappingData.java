@@ -29,10 +29,12 @@ import org.apache.tomcat.util.buf.MessageBytes;
  */
 public class MappingData {
 
+    // 匹配的Host
     public Host host = null;
     public Context context = null;
     public int contextSlashCount = 0;
     public Context[] contexts = null;
+    // 最匹配的servlet
     public Wrapper wrapper = null;
     public boolean jspWildCard = false;
 

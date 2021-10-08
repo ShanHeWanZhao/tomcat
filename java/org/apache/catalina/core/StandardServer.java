@@ -437,6 +437,7 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
                     InputStream stream;
                     long acceptStartTime = System.currentTimeMillis();
                     try {
+                        // 阻塞在这，等待SHUTDOWN信息
                         socket = serverSocket.accept();
                         socket.setSoTimeout(10 * 1000);  // Ten seconds
                         stream = socket.getInputStream();
@@ -483,6 +484,7 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
                     }
                 } finally {
                     // Close the socket now that we are done with it
+                    // 接受完一次请求就关闭客户端的连接
                     try {
                         if (socket != null) {
                             socket.close();
@@ -502,6 +504,7 @@ public final class StandardServer extends LifecycleMBeanBase implements Server {
                 }
             }
         } finally {
+            // 关闭监听SHUTDOWN命令的ServerSocket
             ServerSocket serverSocket = awaitSocket;
             awaitThread = null;
             awaitSocket = null;

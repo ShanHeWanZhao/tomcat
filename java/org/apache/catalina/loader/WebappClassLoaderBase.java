@@ -1259,6 +1259,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             Class<?> clazz = null;
 
             // Log access to stopped class loader
+            // 先检查web应用是否停止
             checkStateForClassLoading(name);
 
             // (0) Check our previously loaded local class cache

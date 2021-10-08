@@ -355,12 +355,14 @@ public class CoyoteAdapter implements Adapter {
         try {
             // Parse and set Catalina and configuration specific
             // request parameters
+            // 主要是解析到合适的Servlet并保存起来，便于后续的处理请求
             postParseSuccess = postParseRequest(req, request, res, response);
-            if (postParseSuccess) {
+            if (postParseSuccess) { // 找到了合适的Servlet，则可以处理请求了
                 //check valves if we support async
                 request.setAsyncSupported(
                         connector.getService().getContainer().getPipeline().isAsyncSupported());
                 // Calling the container
+                // pipeline调用，内部的一种管道调用，开始真正处理请求
                 connector.getService().getContainer().getPipeline().getFirst().invoke(
                         request, response);
             }
@@ -410,7 +412,7 @@ public class CoyoteAdapter implements Adapter {
             }
 
             // Access log
-            if (!async && postParseSuccess) {
+            if (!async && postParseSuccess) { // 非异步并且有合适的servlet处理
                 // Log only if processing was invoked.
                 // If postParseRequest() failed, it has already logged it.
                 Context context = request.getContext();
@@ -439,7 +441,7 @@ public class CoyoteAdapter implements Adapter {
             req.getRequestProcessor().setWorkerThreadName(null);
 
             // Recycle the wrapper request and response
-            if (!async) {
+            if (!async) { // 记录error数量，并且回收Request和Response让之后的请求再使用，以免重复创建对象
                 updateWrapperErrorCount(request, response);
                 request.recycle();
                 response.recycle();
@@ -711,6 +713,7 @@ public class CoyoteAdapter implements Adapter {
 
         while (mapRequired) {
             // This will map the the latest version by default
+            // 解析请求的url，匹配对应的Host和Servlet等，并最终放入MappingData
             connector.getService().getMapper().map(serverName, decodedURI,
                     version, request.getMappingData());
 
@@ -732,6 +735,7 @@ public class CoyoteAdapter implements Adapter {
             // (if any). Need to do this before we redirect in case we need to
             // include the session id in the redirect
             String sessionID;
+            // 解析sessionId
             if (request.getServletContext().getEffectiveSessionTrackingModes()
                     .contains(SessionTrackingMode.URL)) {
 
@@ -1054,7 +1058,7 @@ public class CoyoteAdapter implements Adapter {
 
         for (int i = 0; i < count; i++) {
             ServerCookie scookie = serverCookies.getCookie(i);
-            if (scookie.getName().equals(sessionCookieName)) {
+            if (scookie.getName().equals(sessionCookieName)) { // session cookie
                 // Override anything requested in the URL
                 if (!request.isRequestedSessionIdFromCookie()) {
                     // Accept only the first session id cookie
