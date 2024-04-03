@@ -170,7 +170,7 @@ public abstract class LifecycleBase implements Lifecycle {
             return;
         }
 
-        if (state.equals(LifecycleState.NEW)) {
+        if (state.equals(LifecycleState.NEW)) { // 如果还是初始化状态，就先初始化
             init();
         } else if (state.equals(LifecycleState.FAILED)) {
             stop();
@@ -180,9 +180,10 @@ public abstract class LifecycleBase implements Lifecycle {
         }
 
         try {
+            // 发送before_start给当前容器的监听器
             setStateInternal(LifecycleState.STARTING_PREP, null, false);
             startInternal();
-            if (state.equals(LifecycleState.FAILED)) {
+            if (state.equals(LifecycleState.FAILED)) { // 启动失败，暂停
                 // This is a 'controlled' failure. The component put itself into the
                 // FAILED state so call stop() to complete the clean-up.
                 stop();
@@ -190,7 +191,7 @@ public abstract class LifecycleBase implements Lifecycle {
                 // Shouldn't be necessary but acts as a check that sub-classes are
                 // doing what they are supposed to.
                 invalidTransition(Lifecycle.AFTER_START_EVENT);
-            } else {
+            } else { // 正常会走到这
                 setStateInternal(LifecycleState.STARTED, null, false);
             }
         } catch (Throwable t) {
@@ -358,7 +359,8 @@ public abstract class LifecycleBase implements Lifecycle {
      * Provides a mechanism for sub-classes to update the component state.
      * Calling this method will automatically fire any associated
      * {@link Lifecycle} event. It will also check that any attempted state
-     * transition is valid for a sub-class.
+     * transition is valid for a sub-class. <p/>
+     * 设置当前组件的状态，并将状态传播给当前组件中的监听器
      *
      * @param state The new state for this component
      * @throws LifecycleException when attempting to set an invalid state

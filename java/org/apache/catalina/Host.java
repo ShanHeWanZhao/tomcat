@@ -85,7 +85,8 @@ public interface Host extends Container {
 
     /**
      * @return a default configuration path of this Host. The file will be
-     * canonical if possible.
+     * canonical if possible. <p/>
+     * 默认为：conf/Catalina/localhost目录
      */
     public File getConfigBaseFile();
 
@@ -99,7 +100,8 @@ public interface Host extends Container {
     /**
      * @return an absolute {@link File} for the appBase of this Host. The file
      * will be canonical if possible. There is no guarantee that that the
-     * appBase exists.
+     * appBase exists. <><p/>
+     * 默认：${catalina.base}/webapps
      */
     public File getAppBaseFile();
 

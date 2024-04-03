@@ -206,7 +206,8 @@ public class StandardContext extends ContainerBase
     /**
      * The set of application listener class names configured for this
      * application, in the order they were encountered in the resulting merged
-     * web.xml file.
+     * web.xml file. <p/>
+     * web.xml里的listener标签里配置的各种监听器className
      */
     private String applicationListeners[] = new String[0];
 
@@ -214,7 +215,8 @@ public class StandardContext extends ContainerBase
 
     /**
      * The set of application listeners that are required to have limited access
-     * to ServletContext methods. See Servlet 3.1 section 4.4.
+     * to ServletContext methods. See Servlet 3.1 section 4.4. <><p/>
+     * ServletContextListener集和
      */
     private final Set<Object> noPluggabilityListeners = new HashSet<>();
 
@@ -229,7 +231,8 @@ public class StandardContext extends ContainerBase
     /**
      * The set of instantiated application lifecycle listener objects. Note that
      * SCIs and other code may use the pluggability APIs to add listener
-     * instances directly to this list before the application starts.
+     * instances directly to this list before the application starts. <><p/>
+     * 包括ServletContextListener和HttpSessionListener
      */
     private Object applicationLifecycleListenersObjects[] =
         new Object[0];
@@ -466,7 +469,9 @@ public class StandardContext extends ContainerBase
 
 
     /**
-     * The reloadable flag for this web application.
+     * The reloadable flag for this web application. <p/>
+     * 是否开启可重新加载的检测<p/>
+     * 为true时，当当前环境的Class文件或jar有改变时（增加或修改），会重新加载当前Context
      */
     private boolean reloadable = false;
 
@@ -5023,7 +5028,7 @@ public class StandardContext extends ContainerBase
         if (getLoader() == null) {
             WebappLoader webappLoader = new WebappLoader();
             webappLoader.setDelegate(getDelegate());
-            setLoader(webappLoader);
+            setLoader(webappLoader); // 设置Loader，暂时不会start
         }
 
         // An explicit cookie processor hasn't been specified; use the default
@@ -5073,11 +5078,13 @@ public class StandardContext extends ContainerBase
 
 
         // Binding thread
+        // 绑定ClassLoader到当前线程，并返回旧的classLoader
         ClassLoader oldCCL = bindThread();
 
         try {
             if (ok) {
                 // Start our subordinate components, if any
+                // 启动WebappLoader（创建ParallelWebappClassLoader）
                 Loader loader = getLoader();
                 if (loader instanceof Lifecycle) {
                     ((Lifecycle) loader).start();
@@ -5098,6 +5105,7 @@ public class StandardContext extends ContainerBase
                 // By calling unbindThread and bindThread in a row, we setup the
                 // current Thread CCL to be the webapp classloader
                 unbindThread(oldCCL);
+                // 将ParallelWebappClassLoader绑定到当前线程上线文里
                 oldCCL = bindThread();
 
                 // Initialize logger again. Other components might have used it
@@ -5129,6 +5137,7 @@ public class StandardContext extends ContainerBase
                 }
 
                 // Notify our interested LifecycleListeners
+                // 让对应的ContextConfig解析web.xml和其他jar包里配置的/META-INF/web-fragment.xml并将其组合
                 fireLifecycleEvent(Lifecycle.CONFIGURE_START_EVENT, null);
 
                 // Start our child containers, if not already started
@@ -5231,7 +5240,7 @@ public class StandardContext extends ContainerBase
 
             // Configure and call application event listeners
             if (ok) {
-                if (!listenerStart()) {
+                if (!listenerStart()) { // 触发ServletContextListener的contextInitialized方法
                     log.error(sm.getString("standardContext.listenerFail"));
                     ok = false;
                 }

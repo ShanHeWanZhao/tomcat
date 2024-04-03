@@ -699,6 +699,9 @@ public abstract class AbstractProtocol<S> implements ProtocolHandler,
         private final AbstractProtocol<S> proto;
         private final RequestGroupInfo global = new RequestGroupInfo();
         private final AtomicLong registerCount = new AtomicLong(0);
+        /**
+         * channel和对应处理器的缓存，对于http11来说，key为NioChannel
+         */
         private final Map<S,Processor> connections = new ConcurrentHashMap<>();
         private final RecycledProcessors recycledProcessors = new RecycledProcessors(this);
 

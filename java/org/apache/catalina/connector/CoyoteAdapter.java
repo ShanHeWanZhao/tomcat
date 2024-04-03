@@ -750,6 +750,7 @@ public class CoyoteAdapter implements Adapter {
             }
 
             // Look for session ID in cookies and SSL session
+            // 从cookie中解析sessionId(默认是那个JSESSIONID)
             try {
                 parseSessionCookiesId(request);
             } catch (IllegalArgumentException e) {
@@ -1030,7 +1031,8 @@ public class CoyoteAdapter implements Adapter {
 
 
     /**
-     * Parse session id in Cookie.
+     * Parse session id in Cookie.<><p/>
+     * 从request里的cookie解析sessonId,并保存到request里
      *
      * @param request The Servlet request object
      */

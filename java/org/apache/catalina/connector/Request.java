@@ -368,7 +368,8 @@ public class Request implements HttpServletRequest {
 
 
     /**
-     * The requested session ID (if any) for this request.
+     * The requested session ID (if any) for this request. <><p/>
+     * 请求的sessionId,默认为cookie里的JSESSIONID值
      */
     protected String requestedSessionId = null;
 
@@ -3073,7 +3074,7 @@ public class Request implements HttpServletRequest {
             if ((session != null) && !session.isValid()) {
                 session = null;
             }
-            if (session != null) {
+            if (session != null) { // session找到了且有效，需要设置最近的访问时间
                 session.access();
                 return session;
             }
@@ -3130,8 +3131,10 @@ public class Request implements HttpServletRequest {
         } else {
             sessionId = null;
         }
-        session = manager.createSession(sessionId);
 
+        // 新建session
+        session = manager.createSession(sessionId);
+        // 设置cookie到response中
         // Creating a new session cookie based on that session
         if (session != null && trackModesIncludesCookie) {
             Cookie cookie = ApplicationSessionCookieConfig.createSessionCookie(

@@ -249,7 +249,8 @@ public class Connector extends LifecycleMBeanBase  {
 
 
     /**
-     * Coyote protocol handler.
+     * Coyote protocol handler. <p/>
+     * 默认Http11NioProtocol
      */
     protected final ProtocolHandler protocolHandler;
 

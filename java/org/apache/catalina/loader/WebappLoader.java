@@ -289,10 +289,10 @@ public class WebappLoader extends LifecycleMBeanBase
      */
     @Override
     public void backgroundProcess() {
-        if (reloadable && modified()) {
+        if (reloadable && modified()) { // Context里有文件改变了，需要充值该
             try {
                 Thread.currentThread().setContextClassLoader
-                    (WebappLoader.class.getClassLoader());
+                    (WebappLoader.class.getClassLoader()); // 将当前类加载器设置为tomcat的common类加载器
                 if (context != null) {
                     context.reload();
                 }

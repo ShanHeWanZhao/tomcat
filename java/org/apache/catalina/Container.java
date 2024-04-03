@@ -73,6 +73,26 @@ import org.apache.juli.logging.Log;
  *     Catalina is embedded in a larger server.
  * </ul>
  *
+ * <p/>
+ *
+ * 层级关系如下 <br/>
+ *
+ * StandardEngine <- StandardHost <- StandardContext <- StandardWrapper <br/>
+ * 对于一个url来说，eg: http://www.github.com/context/user/get <br/>
+ * StandardHost：对应域名或ip部分的抽象，如上面的www.github.com <br/>
+ * StandardContext: 紧跟域名后面的指定路径（默认为'/'，即根），如上面的/context部分 <br/>
+ * StandardWrapper: servlet的实现（对应一个具体的uri）, 如上面的/user/get部分 <p/>
+ *
+ * 主要组件关系总结：<br/>
+ * server -> service: 一对多，tomcat整个这个server可以同时在不同的端口运行各自的服务 <br/>
+ * service -> connector: 一对多，一个service（即服务）可以启动多个connector，
+ * 即一个service可以占用多个端口，来拆分此服务。当一个请求进入tomcat后，它的url是可以确定的。
+ * 通过拿到这个connector关联的service,再根据这个service里的Mapper组件（专门用来映射请求的），来唯一定位到
+ * 这个url该使用哪个host下的哪个context的哪个wrapper。 CoyoteAdapter的717行<br/>
+ * service -> engine : 一对一 <br/>
+ * engine -> host: 一对多 <br/>
+ * host -> context：一对多 <br/>
+ * context -> wrapper：一对多 <br/>
  * @author Craig R. McClanahan
  * @author Remy Maucherat
  */

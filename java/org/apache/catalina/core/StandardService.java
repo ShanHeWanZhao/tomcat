@@ -74,7 +74,8 @@ public class StandardService extends LifecycleMBeanBase implements Service {
 
 
     /**
-     * The set of Connectors associated with this Service.
+     * The set of Connectors associated with this Service. <p/>
+     * Connector数组，Service下可以有多个Connector
      */
     protected Connector connectors[] = new Connector[0];
     private final Object connectorsLock = new Object();
@@ -89,7 +90,8 @@ public class StandardService extends LifecycleMBeanBase implements Service {
     private ClassLoader parentClassLoader = null;
 
     /**
-     * Mapper.
+     * Mapper.<p/>
+     * 非常重要，我把它叫路由器，将协助connector来定位一个请求具体该使用哪个wrapper来处理
      */
     protected final Mapper mapper = new Mapper();
 
@@ -540,16 +542,18 @@ public class StandardService extends LifecycleMBeanBase implements Service {
             if (executor instanceof JmxEnabled) {
                 ((JmxEnabled) executor).setDomain(getDomain());
             }
-            executor.init();
+            executor.init(); // 没做啥有用的事，仅仅注册个MBean
         }
 
         // Initialize mapper listener
+        // 没做啥有用的事，仅仅注册个MBean
         mapperListener.init();
 
         // Initialize our defined Connectors
         synchronized (connectorsLock) {
             for (Connector connector : connectors) {
                 try {
+                    // 构建ProtocolHandler和Endpoint，绑定服务器端口
                     connector.init();
                 } catch (Exception e) {
                     String message = sm.getString(

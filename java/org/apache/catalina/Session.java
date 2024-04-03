@@ -262,7 +262,8 @@ public interface Session {
     /**
      * Update the accessed time information for this session.  This method
      * should be called by the context when a request comes in for a particular
-     * session, even if the application does not reference it.
+     * session, even if the application does not reference it. <p/>
+     * 记录一下当前访问时间，以支持过期操作
      */
     public void access();
 

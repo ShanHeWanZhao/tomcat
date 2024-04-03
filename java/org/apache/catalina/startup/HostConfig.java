@@ -312,9 +312,10 @@ public class HostConfig implements LifecycleListener {
         // Process the event that has occurred
         if (event.getType().equals(Lifecycle.PERIODIC_EVENT)) {
             check();
-        } else if (event.getType().equals(Lifecycle.BEFORE_START_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.BEFORE_START_EVENT)) { // StandardHost启动前触发
+            // 确保 ${catalina.base}/webapps和conf/Catalina/localhost目录存在（不存在也只会打日志）
             beforeStart();
-        } else if (event.getType().equals(Lifecycle.START_EVENT)) {
+        } else if (event.getType().equals(Lifecycle.START_EVENT)) { // StanardHost正在启动
             start();
         } else if (event.getType().equals(Lifecycle.STOP_EVENT)) {
             stop();
@@ -467,15 +468,19 @@ public class HostConfig implements LifecycleListener {
     protected void deployApps() {
         File appBase = host.getAppBaseFile();
         File configBase = host.getConfigBaseFile();
-        String[] filteredAppPaths = filterAppPaths(appBase.list());
+        // 过滤器默认为null，所以还是返回全部
+        String[] filteredAppPaths = filterAppPaths(appBase.list()); // 过滤webapps文件夹下的所有文件
         // Deploy XML descriptors from configBase
         // xml方式部署（IDEA的war exploded就是这种方式）
-        deployDescriptors(configBase, configBase.list());
+        // 每一个xml其实就是一个context，文件名就是context的ptah。ROOT.xml就是默认的context，即path为空字符串
+        deployDescriptors(configBase, configBase.list()); // 以xml方式解析并部署conf/Catalina/localhost目录下所有的xml文件
         // Deploy WARs
         // war包的形式部署
+        // 部署${catalina.base}/webapps目录下的所有war包
         deployWARs(appBase, filteredAppPaths);
         // Deploy expanded folders
         // 直接以文件夹的形式部署
+        // 部署${catalina.base}/webapps目录下的所有文件夹形式的context
         deployDirectories(appBase, filteredAppPaths);
     }
 

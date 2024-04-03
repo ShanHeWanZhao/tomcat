@@ -54,7 +54,9 @@ import org.w3c.dom.ls.DOMImplementationLS;
  * <p>
  * Locked files usually occur when a resource inside a JAR is accessed without
  * first disabling Jar URL connection caching. The workaround is to disable this
- * caching by default.
+ * caching by default. <p/>
+ * 就是让系统类加载器去加载一些指定的Class以避免这个Class被WebappClassLoader加载，持有了这个WebappClassLoader的引用，
+ * 而在context重新加载时使用新的WebappClassLoader，导致旧的WebappClassLoader不能被回收
  */
 public class JreMemoryLeakPreventionListener implements LifecycleListener {
 

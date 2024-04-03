@@ -157,13 +157,22 @@ public abstract class ContainerBase extends LifecycleMBeanBase implements Contai
 
 
     /**
-     * The child Containers belonging to this Container, keyed by name.
+     * The child Containers belonging to this Container, keyed by name. <p/>
+     * 当前容器的所有子容器
      */
     protected final HashMap<String, Container> children = new HashMap<>();
 
 
     /**
-     * The processor delay for this component.
+     * The processor delay for this component. <p/>
+     * tomcat后台线程ContainerBackgroundProcessor的执行间隔时间，
+     * 这个后台线程专门用来处理过期的session等 <br/>
+     * 这个值小于0时，就不会启动后台线程 <p/>
+     * 默认情况下，只有engine才会初始化这个值为10。
+     * 其余的容器（host,context,wrapper都不会修改这个值）<br/>
+     * 所以，只有engine在start时才会启动ContainerBackgroundProcessor线程 <br/>
+     * 因为每一个Container都可能会处理自身的后台任务，所以直接由最顶级的engine容器来开启这个线程，
+     * 递归的处理子Container，这样就能处理所有Container的后台任务了
      */
     protected int backgroundProcessorDelay = -1;
 
@@ -909,7 +918,8 @@ public abstract class ContainerBase extends LifecycleMBeanBase implements Contai
 
     /**
      * Start this component and implement the requirements
-     * of {@link org.apache.catalina.util.LifecycleBase#startInternal()}.
+     * of {@link org.apache.catalina.util.LifecycleBase#startInternal()}. <p/>
+     * 多线程start子容器，并阻塞等待完成
      *
      * @exception LifecycleException if this component detects a fatal error
      *  that prevents this component from being used
@@ -960,6 +970,7 @@ public abstract class ContainerBase extends LifecycleMBeanBase implements Contai
             ((Lifecycle) pipeline).start();
         }
 
+        // 触发当前组件里监听器lifecycleListeners的start事件
         setState(LifecycleState.STARTING);
 
         // Start our thread

@@ -76,7 +76,8 @@ public class StandardHost extends ContainerBase implements Host {
 
 
     /**
-     * The set of aliases for this Host.
+     * The set of aliases for this Host. <p/>
+     * 当前Host的别名，匹配别名也能匹配到当前Host
      */
     private String[] aliases = new String[0];
 
@@ -84,9 +85,14 @@ public class StandardHost extends ContainerBase implements Host {
 
 
     /**
-     * The application root for this Host.
+     * The application root for this Host. <p/>
+     * 当前Host的web目录（这个目录下就应该存放web应用）
      */
     private String appBase = "webapps";
+
+    /**
+     * 默认：${catalina.base}/webapps
+     */
     private volatile File appBaseFile = null;
 
     /**
@@ -108,7 +114,8 @@ public class StandardHost extends ContainerBase implements Host {
 
     /**
      * The Java class name of the default context configuration class
-     * for deployed web applications.
+     * for deployed web applications. <p/>
+     * 添加到当前Host的子容器Context里的监听器（ContextConfig）
      */
     private String configClass =
         "org.apache.catalina.startup.ContextConfig";
@@ -116,7 +123,8 @@ public class StandardHost extends ContainerBase implements Host {
 
     /**
      * The Java class name of the default Context implementation class for
-     * deployed web applications.
+     * deployed web applications. <p/>
+     * 当前Host的子容器Context的实现类
      */
     private String contextClass =
         "org.apache.catalina.core.StandardContext";
@@ -179,7 +187,8 @@ public class StandardHost extends ContainerBase implements Host {
     /**
      * Any file or directory in {@link #appBase} that this pattern matches will
      * be ignored by the automatic deployment process (both
-     * {@link #deployOnStartup} and {@link #autoDeploy}).
+     * {@link #deployOnStartup} and {@link #autoDeploy}). <><p/>
+     * 默认为null
      */
     private Pattern deployIgnore = null;
 
@@ -222,7 +231,7 @@ public class StandardHost extends ContainerBase implements Host {
             return appBaseFile;
         }
 
-        File file = new File(getAppBase());
+        File file = new File(getAppBase()); // webapps
 
         // If not absolute, make it absolute
         if (!file.isAbsolute()) {

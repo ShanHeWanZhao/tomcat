@@ -141,7 +141,7 @@ public final class Bootstrap {
 
     private void initClassLoaders() {
         try {
-            // URLClassLoader
+            // 为URLClassLoader
             // "${catalina.base}/lib"
             // "${catalina.base}/lib/*.jar"
             // "${catalina.home}/lib"
@@ -151,7 +151,9 @@ public final class Bootstrap {
                 // no config file, default to this loader - we might be in a 'single' env.
                 commonLoader = this.getClass().getClassLoader();
             }
+            // 默认为上面的commonLoader
             catalinaLoader = createClassLoader("server", commonLoader);
+            // 默认为上面的commonLoader
             sharedLoader = createClassLoader("shared", commonLoader);
         } catch (Throwable t) {
             handleThrowable(t);
@@ -258,6 +260,7 @@ public final class Bootstrap {
 
         Thread.currentThread().setContextClassLoader(catalinaLoader);
 
+        // 用catalinaLoader加载tomcat部分自带的class
         SecurityClassLoad.securityClassLoad(catalinaLoader);
 
         // Load our startup class and call its process() method

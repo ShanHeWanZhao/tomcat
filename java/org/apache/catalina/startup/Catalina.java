@@ -93,7 +93,8 @@ public class Catalina {
 
     // XXX Should be moved to embedded
     /**
-     * The shared extensions class loader for this server.
+     * The shared extensions class loader for this server. <p/>
+     * 默认为sharedLoader，也即commonLoader
      */
     protected ClassLoader parentClassLoader =
         Catalina.class.getClassLoader();
@@ -532,7 +533,9 @@ public class Catalina {
 
 
     /**
-     * Start a new server instance.
+     * Start a new server instance. <p/>
+     * 解析server.xml，通过关联关系init各种组件<br/>
+     * 包括：Service -> Service -> Engine、Connector -> ProtocolHandler -> EndPoint（会在这绑定端口）
      */
     public void load() {
 

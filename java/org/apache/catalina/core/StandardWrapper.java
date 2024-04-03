@@ -184,6 +184,7 @@ public class StandardWrapper extends ContainerBase
 
     /**
      * Does this servlet implement the SingleThreadModel interface? <p/>
+     * 是否是单线程模式，如果为true，代表Servlet在每个运行的线程中是不同的（多例）<br/>
      * 正常的servlet都应该是false
      */
     protected volatile boolean singleThreadModel = false;
@@ -995,6 +996,7 @@ public class StandardWrapper extends ContainerBase
      */
     @Override
     public synchronized void load() throws ServletException {
+        // 根据web.xml里配置的servlet class实例化对应的Servlet并调用init接口
         instance = loadServlet();
 
         if (!instanceInitialized) {

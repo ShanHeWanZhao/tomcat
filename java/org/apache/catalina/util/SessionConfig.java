@@ -27,7 +27,9 @@ public class SessionConfig {
 
     /**
      * Determine the name to use for the session cookie for the provided
-     * context.
+     * context.<p/>
+     * 确定session的sessionId名
+     * （默认为JSESSIONID）
      * @param context The context
      * @return the cookie name for the context
      */
@@ -63,8 +65,8 @@ public class SessionConfig {
     private static String getConfiguredSessionCookieName(Context context) {
 
         // Priority is:
-        // 1. Cookie name defined in context
-        // 2. Cookie name configured for app
+        // 1. Cookie name defined in context  （Context标签里的sessionCookieName属性值）
+        // 2. Cookie name configured for app （SessionCookieConfig里的name）
         // 3. Default defined by spec
         if (context != null) {
             String cookieName = context.getSessionCookieName();

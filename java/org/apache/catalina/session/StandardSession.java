@@ -84,10 +84,23 @@ public class StandardSession implements HttpSession, Session, Serializable {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * 默认false
+     */
     protected static final boolean STRICT_SERVLET_COMPLIANCE;
 
+    /**
+     * 默认false
+     */
     protected static final boolean ACTIVITY_CHECK;
 
+    /**
+     *  以什么来判定session的最近访问时间标志 <br/>
+     *  true: 以启动过程中最后一次访问session的时间（这样基本session的有效时间都被定死了）<br/>
+     *  false: 整个时间段中，以最近一次访问的时间为主（只要获取到session，就刷新，session的有效时间可以很长）
+     *  <p/>
+     * 默认false
+     */
     protected static final boolean LAST_ACCESS_AT_START;
 
     static {

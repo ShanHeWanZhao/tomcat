@@ -82,13 +82,17 @@ public class StandardEngine extends ContainerBase implements Engine {
 
     /**
      * Host name to use when no server host, or an unknown host,
-     * is specified in the request.
+     * is specified in the request. <p/>
+     *
+     * 默认主机名，当请求没有精确或模糊匹配到指定的主机名，就会使用这个<br/>
+     * server.xml里的Engine标签里的defaultHost属性值（默认为localhost）
      */
     private String defaultHost = null;
 
 
     /**
-     * The <code>Service</code> that owns this Engine, if any.
+     * The <code>Service</code> that owns this Engine, if any. <p/>
+     * 当前Engine关联的Service（一对一的关系）
      */
     private Service service = null;
 

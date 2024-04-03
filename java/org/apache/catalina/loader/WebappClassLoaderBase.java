@@ -275,7 +275,8 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
      * keyed by resource path, not binary name. Path is used as the key since
      * resources may be requested by binary name (classes) or path (other
      * resources such as property files) and the mapping from binary name to
-     * path is unambiguous but the reverse mapping is ambiguous.
+     * path is unambiguous but the reverse mapping is ambiguous. <p/>
+     * 当前加载过的class的缓存
      */
     protected final Map<String, ResourceEntry> resourceEntries =
             new ConcurrentHashMap<>();
@@ -317,7 +318,8 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
 
 
     /**
-     * The parent class loader.
+     * The parent class loader. <p/>
+     * tomcat的common类加载器（URLClassLoader）
      */
     protected final ClassLoader parent;
 
@@ -732,7 +734,9 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
 
     /**
      * Have one or more classes or resources been modified so that a reload
-     * is appropriate?
+     * is appropriate? <p/>
+     * 根据对比已加载的Class或jar资源的最近修改时间和上次记录的修改时间是否一致，
+     * 来判断是否需要重载context
      * @return <code>true</code> if there's been a modification
      */
     public boolean modified() {
@@ -745,7 +749,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             long cachedLastModified = entry.getValue().lastModified;
             long lastModified = resources.getClassLoaderResource(
                     entry.getKey()).getLastModified();
-            if (lastModified != cachedLastModified) {
+            if (lastModified != cachedLastModified) { // 文件修改时间不同，代表被修改了，需要重新加载context
                 if( log.isDebugEnabled() ) {
                     log.debug(sm.getString("webappClassLoader.resourceModified",
                             entry.getKey(),
@@ -765,13 +769,13 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             if (jar.getName().endsWith(".jar") && jar.isFile() && jar.canRead()) {
                 jarCount++;
                 Long recordedLastModified = jarModificationTimes.get(jar.getName());
-                if (recordedLastModified == null) {
+                if (recordedLastModified == null) { // jar包没有记录上次修改时间，代表这个jar是新增的，也需要重载context
                     // Jar has been added
                     log.info(sm.getString("webappClassLoader.jarsAdded",
                             resources.getContext().getName()));
                     return true;
                 }
-                if (recordedLastModified.longValue() != jar.getLastModified()) {
+                if (recordedLastModified.longValue() != jar.getLastModified()) { // 时间变了，也要重载context
                     // Jar has been changed
                     log.info(sm.getString("webappClassLoader.jarsModified",
                             resources.getContext().getName()));
@@ -1263,6 +1267,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             checkStateForClassLoading(name);
 
             // (0) Check our previously loaded local class cache
+            // 1、查找当前类加载器是否已经加载了这个class
             clazz = findLoadedClass0(name);
             if (clazz != null) {
                 if (log.isDebugEnabled()) {
@@ -1275,6 +1280,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             }
 
             // (0.1) Check our previously loaded class cache
+            // 2、从当前类加载器的native中查找是否已经缓存过
             clazz = findLoadedClass(name);
             if (clazz != null) {
                 if (log.isDebugEnabled()) {
@@ -1291,6 +1297,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             //       SRV.10.7.2
             String resourceName = binaryNameToPath(name, false);
 
+            // 检查jvm的类加载器是否加载当前class
             ClassLoader javaseLoader = getJavaseClassLoader();
             boolean tryLoadingFromJavaseLoader;
             try {
@@ -1321,7 +1328,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
                 tryLoadingFromJavaseLoader = true;
             }
 
-            if (tryLoadingFromJavaseLoader) {
+            if (tryLoadingFromJavaseLoader) { // jvm类加载器加载过，直接从jvm类加载器获取这个Class
                 try {
                     clazz = javaseLoader.loadClass(name);
                     if (clazz != null) {
@@ -1352,7 +1359,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
             boolean delegateLoad = delegate || filter(name, true);
 
             // (1) Delegate to our parent if requested
-            if (delegateLoad) {
+            if (delegateLoad) { // 设置了delegate为true，则尝试使用tomcat的common类加载器加载（一般都不会走这）
                 if (log.isDebugEnabled()) {
                     log.debug("  Delegating to parent classloader1 " + parent);
                 }
@@ -1377,6 +1384,7 @@ public abstract class WebappClassLoaderBase extends URLClassLoader
                 log.debug("  Searching local repositories");
             }
             try {
+                // 尝试使用当前类加载器加载
                 clazz = findClass(name);
                 if (clazz != null) {
                     if (log.isDebugEnabled()) {
